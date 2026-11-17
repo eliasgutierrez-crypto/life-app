@@ -1,0 +1,28 @@
+model Debt {
+  id         String        @id @default(cuid())
+  coupleId   String
+  couple     Couple        @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  name       String
+  principal  Decimal       @db.Decimal(14, 2)
+  annualRate Decimal       @db.Decimal(5, 2) // % simple anual
+  startDate  DateTime      @db.Date
+  termMonths Int
+  payments   DebtPayment[]
+
+  @@index([coupleId])
+}
+
+model DebtPayment {
+  id        String    @id @default(cuid())
+  debtId    String
+  debt      Debt      @relation(fields: [debtId], references: [id], onDelete: Cascade)
+  number    Int
+  dueDate   DateTime  @db.Date
+  amount    Decimal   @db.Decimal(14, 2)
+  principal Decimal   @db.Decimal(14, 2)
+  interest  Decimal   @db.Decimal(14, 2)
+  paid      Boolean   @default(false)
+  paidAt    DateTime?
+
+  @@unique([debtId, number])
+}

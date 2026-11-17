@@ -1,0 +1,36 @@
+model Couple {
+  id         String   @id @default(cuid())
+  memberAId  String   // userId de Clerk (tú)
+  memberBId  String?  // userId de Clerk (tu pareja), null mientras espera
+  inviteCode String   @unique
+  createdAt  DateTime @default(now())
+
+  // Relaciones inversas — finance
+  accounts          Account[]
+  categories        Category[]
+  transactions      Transaction[]
+  creditCards       CreditCard[]
+  installmentPlans  InstallmentPlan[]
+
+  // Relaciones inversas — debt
+  debts             Debt[]
+
+  // Relaciones inversas — habits
+  habits            Habit[]
+
+  // Relaciones inversas — investment
+  investments       Investment[]
+
+  // Relaciones inversas — meals
+  recipes           Recipe[]
+  mealPlans         MealPlan[]
+
+  // Relaciones inversas — pantry
+  pantryItems       PantryItem[]
+
+  // Relaciones inversas — schedule
+  scheduleBlocks    ScheduleBlock[]
+
+  @@unique([memberAId])
+  @@unique([memberBId])
+}

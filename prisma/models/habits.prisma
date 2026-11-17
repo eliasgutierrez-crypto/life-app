@@ -1,0 +1,31 @@
+enum HabitFrequency {
+  DAILY
+  WEEKLY_X
+  SPECIFIC_DAYS
+}
+
+model Habit {
+  id           String         @id @default(cuid())
+  coupleId     String
+  couple       Couple         @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  name         String
+  description  String?
+  frequency    HabitFrequency @default(DAILY)
+  timesPerWeek Int?           // solo si WEEKLY_X
+  daysOfWeek   Int[]          // solo si SPECIFIC_DAYS
+  createdAt    DateTime       @default(now())
+  entries      HabitEntry[]
+
+  @@index([coupleId])
+}
+
+model HabitEntry {
+  id        String   @id @default(cuid())
+  habitId   String
+  habit     Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  date      DateTime @db.Date
+  completed Boolean  @default(true)
+
+  @@unique([habitId, date])
+  @@index([habitId, date])
+}

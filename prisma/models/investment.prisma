@@ -1,0 +1,22 @@
+model Investment {
+  id            String                   @id @default(cuid())
+  coupleId      String
+  couple        Couple                   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  name          String
+  type          String?
+  currentValue  Decimal                  @default(0) @db.Decimal(14, 2)
+  contributions InvestmentContribution[]
+
+  @@index([coupleId])
+}
+
+model InvestmentContribution {
+  id           String     @id @default(cuid())
+  investmentId String
+  investment   Investment @relation(fields: [investmentId], references: [id], onDelete: Cascade)
+  amount       Decimal    @db.Decimal(14, 2)
+  date         DateTime   @db.Date
+  note         String?
+
+  @@index([investmentId, date])
+}

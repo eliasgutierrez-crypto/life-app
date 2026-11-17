@@ -1,0 +1,14 @@
+model ScheduleBlock {
+  id          String   @id @default(cuid())
+  coupleId    String
+  couple      Couple   @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  color       String?
+  startTime   Int // minutos desde medianoche (0-1439)
+  endTime     Int // minutos desde medianoche (0-1439)
+  daysOfWeek  Int[] // 0=domingo ... 6=sábado (día en que inicia)
+  createdAt   DateTime @default(now())
+
+  @@index([coupleId])
+}

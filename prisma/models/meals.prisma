@@ -1,0 +1,42 @@
+enum MealType {
+  BREAKFAST
+  LUNCH
+  DINNER
+}
+
+model Recipe {
+  id              String          @id @default(cuid())
+  coupleId        String
+  couple          Couple          @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  name            String
+  mealType        MealType
+  ingredients     String? // texto libre (no descuenta despensa)
+  notes           String?
+  createdAt       DateTime        @default(now())
+  mealPlanEntries MealPlanEntry[]
+
+  @@index([coupleId, mealType])
+}
+
+model MealPlan {
+  id        String          @id @default(cuid())
+  coupleId  String
+  couple    Couple          @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  weekStart DateTime        @db.Date // lunes de la semana
+  entries   MealPlanEntry[]
+
+  @@unique([coupleId, weekStart])
+  @@index([coupleId])
+}
+
+model MealPlanEntry {
+  id        String   @id @default(cuid())
+  planId    String
+  plan      MealPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  dayOfWeek Int // 0=lunes ... 6=domingo
+  mealType  MealType
+  recipeId  String
+  recipe    Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@unique([planId, dayOfWeek, mealType]) // 1 receta por comida por día
+}

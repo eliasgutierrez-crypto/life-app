@@ -1,0 +1,14 @@
+model PantryItem {
+  id         String    @id @default(cuid())
+  coupleId   String
+  couple     Couple    @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  name       String
+  currentQty Decimal   @default(0) @db.Decimal(10, 3)
+  unit       String // "kg", "L", "pz", "g", etc.
+  minStock   Decimal   @default(0) @db.Decimal(10, 3)
+  expiresAt  DateTime? @db.Date
+  createdAt  DateTime  @default(now())
+
+  @@index([coupleId])
+  @@index([coupleId, expiresAt])
+}

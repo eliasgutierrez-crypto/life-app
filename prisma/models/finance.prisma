@@ -1,0 +1,104 @@
+enum TransactionType {
+  EXPENSE
+  INCOME
+  TRANSFER
+  SAVING
+  INVESTMENT
+  DEBT_PAYMENT
+}
+
+enum AccountType {
+  CHECKING
+  SAVINGS
+  INVESTMENT
+  CASH
+}
+
+model Account {
+  id           String        @id @default(cuid())
+  coupleId     String
+  couple       Couple        @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  name         String
+  type         AccountType
+  balance      Decimal       @default(0) @db.Decimal(14, 2)
+  createdAt    DateTime      @default(now())
+  transactions Transaction[]
+
+  @@index([coupleId])
+}
+
+model Category {
+  id           String          @id @default(cuid())
+  coupleId     String
+  couple       Couple          @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  name         String
+  type         TransactionType
+  icon         String?
+  transactions Transaction[]
+
+  @@index([coupleId])
+}
+
+model Transaction {
+  id           String          @id @default(cuid())
+  coupleId     String
+  couple       Couple          @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  type         TransactionType
+  amount       Decimal         @db.Decimal(14, 2)
+  date         DateTime        @db.Date
+  description  String?
+  categoryId   String?
+  category     Category?       @relation(fields: [categoryId], references: [id])
+  accountId    String?
+  account      Account?        @relation(fields: [accountId], references: [id])
+  creditCardId String?
+  creditCard   CreditCard?     @relation(fields: [creditCardId], references: [id])
+  createdAt    DateTime        @default(now())
+
+  @@index([coupleId, date])
+  @@index([coupleId, type])
+}
+
+model CreditCard {
+  id               String            @id @default(cuid())
+  coupleId         String
+  couple           Couple            @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  name             String
+  limitAmount      Decimal           @db.Decimal(14, 2)
+  currentBalance   Decimal           @default(0) @db.Decimal(14, 2)
+  cutoffDay        Int
+  paymentDay       Int
+  interestRate     Decimal?          @db.Decimal(5, 2)
+  transactions     Transaction[]
+  installmentPlans InstallmentPlan[]
+
+  @@index([coupleId])
+}
+
+model InstallmentPlan {
+  id            String               @id @default(cuid())
+  coupleId      String
+  couple        Couple               @relation(fields: [coupleId], references: [id], onDelete: Cascade)
+  creditCardId  String
+  creditCard    CreditCard           @relation(fields: [creditCardId], references: [id])
+  description   String
+  totalAmount   Decimal              @db.Decimal(14, 2)
+  months        Int
+  monthlyAmount Decimal              @db.Decimal(14, 2)
+  startDate     DateTime             @db.Date
+  payments      InstallmentPayment[]
+
+  @@index([coupleId])
+}
+
+model InstallmentPayment {
+  id      String          @id @default(cuid())
+  planId  String
+  plan    InstallmentPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  number  Int
+  dueDate DateTime        @db.Date
+  paid    Boolean         @default(false)
+  paidAt  DateTime?
+
+  @@unique([planId, number])
+}
