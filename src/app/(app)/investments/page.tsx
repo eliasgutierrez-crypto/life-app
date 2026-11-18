@@ -1,0 +1,10 @@
+import { Suspense } from "react";
+import { requireCouple } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { formatMoney } from "@/lib/finance-utils";
+import { totalContributed, gainLoss } from "@/lib/investments-utils";
+import { deleteInvestment } from "./actions";
+async function InvestmentList() { const { coupleId } = await requireCouple(); const items = await prisma.investment.findMany({ where: { coupleId }, include: { contributions: true }, orderBy: { name: "asc" } }); if (!items.length) return <EmptyState title="No hay inversiones" action={<Button href="/investments/new">Añadir inversión</Button>}/>; return <div className="space-y-2">{items.map((item)=>{ const contributed=totalContributed(item.contributions); const gain=gainLoss(item,item.contributions); return <div key={item.id} className="flex items-center justify-between rounded border bg-white p-4"><div><p className="font-medium">{item.name}</p><p className="text-sm text-gray-600">{item.type || "Inversión"} · Aportado {formatMoney(contributed)} · Ganancia {formatMoney(gain)}</p></div><div className="flex gap-2"><Button href={`/investments/${item.id}`} variant="secondary">Ver</Button><Button href={`/investments/${item.id}/edit`} variant="secondary">Editar</Button><form action={deleteInvestment}><input type="hidden" name="id" value={item.id}/><Button type="submit" variant="danger">Borrar</Button></form></div></div>; })}</div>; }
+export default function InvestmentsPage() { return <main className="mx-auto max-w-5xl p-6"><div className="mb-4 flex justify-between"><h1 className="text-2xl font-semibold">Inversiones</h1><Button href="/investments/new">Añadir inversión</Button></div><Suspense fallback={<p>Cargando…</p>}><InvestmentList/></Suspense></main>; }

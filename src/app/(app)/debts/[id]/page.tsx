@@ -1,0 +1,10 @@
+import { notFound } from "next/navigation";
+import { Suspense } from "react";
+import { requireCouple } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+import { Badge } from "@/components/ui/badge";
+import { formatMoney } from "@/lib/finance-utils";
+import { markPaymentPaid } from "../actions";
+async function Detail({ id }: { id: string }) { const { coupleId } = await requireCouple(); const debt = await prisma.debt.findFirst({ where: { id, coupleId }, include: { payments: { orderBy: { number: "asc" } } } }); if (!debt) notFound(); return <main className="mx-auto max-w-5xl p-6"><h1 className="mb-4 text-2xl font-semibold">{debt.name}</h1><div className="overflow-x-auto rounded border bg-white"><table className="w-full text-sm"><thead className="bg-gray-50"><tr>{["Pago","Vencimiento","Monto","Capital","Interés","Estado"].map((h)=><th key={h} className="px-3 py-2 text-left">{h}</th>)}</tr></thead><tbody className="divide-y">{debt.payments.map((payment)=><tr key={payment.id}><td className="px-3 py-2">{payment.number}</td><td className="px-3 py-2">{payment.dueDate.toLocaleDateString("es-MX")}</td><td className="px-3 py-2">{formatMoney(payment.amount)}</td><td className="px-3 py-2">{formatMoney(payment.principal)}</td><td className="px-3 py-2">{formatMoney(payment.interest)}</td><td className="px-3 py-2"><form action={async()=>{"use server"; await markPaymentPaid(payment.id);}}><button type="submit"><Badge variant={payment.paid ? "success" : "warning"}>{payment.paid ? "Pagado" : "Pendiente"}</Badge></button></form></td></tr>)}</tbody></table></div></main>; }
+export default function DebtDetail(props: { params: Promise<{ id: string }> }) { return <Suspense fallback={<p className="p-6">Cargando…</p>}><Load params={props.params}/></Suspense>; }
+async function Load({ params }: { params: Promise<{ id: string }> }) { const { id } = await params; return <Detail id={id}/>; }

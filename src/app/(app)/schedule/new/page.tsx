@@ -1,0 +1,7 @@
+"use client";
+import { useActionState } from "react";
+import { createScheduleBlock, type ActionState } from "../actions";
+import { FormField } from "@/components/ui/form-field";
+import { Button } from "@/components/ui/button";
+import { ErrorMessage } from "@/components/ui/error-message";
+export default function NewSchedulePage() { const [state, action, pending] = useActionState(createScheduleBlock, null as ActionState); return <main className="mx-auto max-w-2xl p-6"><h1 className="mb-4 text-2xl font-semibold">Nuevo bloque</h1><ErrorMessage message={state?.error}/><form action={action} className="space-y-4 rounded border bg-white p-4"><FormField label="Título" name="title" required/><FormField label="Descripción" name="description"/><FormField label="Color" name="color" type="color" defaultValue="#dbeafe"/><FormField label="Inicio" name="startTime" type="time" required/><FormField label="Fin" name="endTime" type="time" required/><fieldset><legend className="mb-2 text-sm font-medium">Días</legend><div className="grid grid-cols-4 gap-2">{["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"].map((day, index) => <label key={day} className="text-sm"><input type="checkbox" name="daysOfWeek" value={index} className="mr-1"/>{day}</label>)}</div></fieldset><div className="flex gap-2"><Button type="submit" disabled={pending}>Guardar</Button><Button href="/schedule" variant="secondary">Cancelar</Button></div></form></main>; }

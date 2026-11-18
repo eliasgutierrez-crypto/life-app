@@ -1,0 +1,10 @@
+import { notFound } from "next/navigation";
+import { Suspense } from "react";
+import { requireCouple } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+import { Badge } from "@/components/ui/badge";
+import { formatMoney } from "@/lib/finance-utils";
+import { markInstallmentPaid } from "../../actions";
+async function Detail({ id }: { id: string }) { const { coupleId } = await requireCouple(); const plan = await prisma.installmentPlan.findFirst({ where: { id, coupleId }, include: { creditCard: true, payments: { orderBy: { number: "asc" } } } }); if (!plan) notFound(); return <main className="mx-auto max-w-4xl p-6"><h1 className="mb-4 text-2xl font-semibold">{plan.description}</h1><p className="mb-4 text-gray-600">{plan.creditCard.name} · {formatMoney(plan.totalAmount)}</p><div className="space-y-2">{plan.payments.map((payment) => <div key={payment.id} className="flex items-center justify-between rounded border bg-white p-3"><div><p className="font-medium">Pago {payment.number}</p><p className="text-sm text-gray-600">{payment.dueDate.toLocaleDateString("es-MX")} · {formatMoney(plan.monthlyAmount)}</p></div><div className="flex items-center gap-3"><Badge variant={payment.paid ? "success" : "warning"}>{payment.paid ? "Pagado" : "Pendiente"}</Badge><form action={async () => { "use server"; await markInstallmentPaid(payment.id); }}><button type="submit" className="rounded border px-3 py-2 text-sm">{payment.paid ? "Marcar pendiente" : "Marcar pagado"}</button></form></div></div>)}</div></main>; }
+export default function InstallmentDetail(props: { params: Promise<{ id: string }> }) { return <Suspense fallback={<p className="p-6">Cargando…</p>}><Load params={props.params}/></Suspense>; }
+async function Load({ params }: { params: Promise<{ id: string }> }) { const { id } = await params; return <Detail id={id}/>; }

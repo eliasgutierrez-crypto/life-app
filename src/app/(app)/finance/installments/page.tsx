@@ -1,0 +1,8 @@
+import { Suspense } from "react";
+import { requireCouple } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { formatMoney } from "@/lib/finance-utils";
+async function PlanList() { const { coupleId } = await requireCouple(); const plans = await prisma.installmentPlan.findMany({ where: { coupleId }, include: { creditCard: true, payments: true }, orderBy: { startDate: "desc" } }); if (!plans.length) return <EmptyState title="No hay planes a meses" action={<Button href="/finance/installments/new">Crear plan</Button>}/>; return <div className="space-y-2">{plans.map((plan) => <div key={plan.id} className="flex items-center justify-between rounded border bg-white p-4"><div><p className="font-medium">{plan.description}</p><p className="text-sm text-gray-600">{plan.creditCard.name} · {plan.months} meses · {plan.payments.filter((p) => p.paid).length}/{plan.months} pagados</p></div><div className="flex items-center gap-3"><span>{formatMoney(plan.monthlyAmount)} / mes</span><Button href={`/finance/installments/${plan.id}`} variant="secondary">Ver pagos</Button></div></div>)}</div>; }
+export default function InstallmentsPage() { return <main className="mx-auto max-w-5xl p-6"><div className="mb-4 flex justify-between"><h1 className="text-2xl font-semibold">Meses sin intereses</h1><Button href="/finance/installments/new">Crear plan</Button></div><Suspense fallback={<p>Cargando…</p>}><PlanList/></Suspense></main>; }

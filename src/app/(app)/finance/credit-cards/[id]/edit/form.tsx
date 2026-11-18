@@ -1,0 +1,7 @@
+"use client";
+import { useActionState } from "react";
+import { updateCreditCard, type ActionState } from "../../../actions";
+import { FormField } from "@/components/ui/form-field";
+import { Button } from "@/components/ui/button";
+import { ErrorMessage } from "@/components/ui/error-message";
+export default function EditCreditCardForm({ card }: { card: { id: string; name: string; limitAmount: string; cutoffDay: number; paymentDay: number; interestRate: string } }) { const [state, action, pending] = useActionState(updateCreditCard.bind(null, card.id), null as ActionState); return <main className="mx-auto max-w-2xl p-6"><h1 className="mb-4 text-2xl font-semibold">Editar tarjeta</h1><ErrorMessage message={state?.error}/><form action={action} className="space-y-4 rounded border bg-white p-4"><FormField label="Nombre" name="name" defaultValue={card.name} required/><FormField label="Límite" name="limitAmount" type="number" step="0.01" defaultValue={card.limitAmount}/><FormField label="Día de corte" name="cutoffDay" type="number" defaultValue={card.cutoffDay}/><FormField label="Día de pago" name="paymentDay" type="number" defaultValue={card.paymentDay}/><FormField label="Tasa de interés anual" name="interestRate" type="number" step="0.01" defaultValue={card.interestRate}/><div className="flex gap-2"><Button type="submit" disabled={pending}>Guardar</Button><Button href="/finance/credit-cards" variant="secondary">Cancelar</Button></div></form></main>; }

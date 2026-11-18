@@ -1,0 +1,9 @@
+import { Suspense } from "react";
+import { requireCouple } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { formatMoney } from "@/lib/finance-utils";
+import { deleteCreditCard } from "../actions";
+async function CardList() { const { coupleId } = await requireCouple(); const cards = await prisma.creditCard.findMany({ where: { coupleId }, orderBy: { name: "asc" } }); if (!cards.length) return <EmptyState title="No hay tarjetas" action={<Button href="/finance/credit-cards/new">Añadir tarjeta</Button>}/>; return <div className="space-y-2">{cards.map((card) => <div key={card.id} className="flex items-center justify-between rounded border bg-white p-4"><div><p className="font-medium">{card.name}</p><p className="text-sm text-gray-600">Límite {formatMoney(card.limitAmount)} · Adeudo {formatMoney(card.currentBalance)}</p></div><div className="flex gap-2"><Button href={`/finance/credit-cards/${card.id}`} variant="secondary">Ver</Button><Button href={`/finance/credit-cards/${card.id}/edit`} variant="secondary">Editar</Button><form action={deleteCreditCard}><input type="hidden" name="id" value={card.id}/><Button type="submit" variant="danger">Borrar</Button></form></div></div>)}</div>; }
+export default function CreditCardsPage() { return <main className="mx-auto max-w-4xl p-6"><div className="mb-4 flex justify-between"><h1 className="text-2xl font-semibold">Tarjetas de crédito</h1><Button href="/finance/credit-cards/new">Añadir tarjeta</Button></div><Suspense fallback={<p>Cargando…</p>}><CardList/></Suspense></main>; }

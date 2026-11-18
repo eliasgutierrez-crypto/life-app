@@ -1,0 +1,8 @@
+"use client";
+import { useActionState } from "react";
+import { updateRecipe, type ActionState } from "../../../actions";
+import { FormField } from "@/components/ui/form-field";
+import { Select } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { ErrorMessage } from "@/components/ui/error-message";
+export default function EditRecipeForm({ recipe }: { recipe: { id: string; name: string; mealType: string; ingredients: string; notes: string } }) { const [state, action, pending] = useActionState(updateRecipe.bind(null, recipe.id), null as ActionState); return <main className="mx-auto max-w-2xl p-6"><h1 className="mb-4 text-2xl font-semibold">Editar receta</h1><ErrorMessage message={state?.error}/><form action={action} className="space-y-4 rounded border bg-white p-4"><FormField label="Nombre" name="name" defaultValue={recipe.name} required/><FormField label="Tipo" name="mealType"><Select name="mealType" defaultValue={recipe.mealType}><option value="BREAKFAST">Desayuno</option><option value="LUNCH">Comida</option><option value="DINNER">Cena</option></Select></FormField><label className="block"><span className="mb-1 block text-sm font-medium">Ingredientes</span><textarea name="ingredients" defaultValue={recipe.ingredients} className="w-full rounded border px-3 py-2"/></label><label className="block"><span className="mb-1 block text-sm font-medium">Notas</span><textarea name="notes" defaultValue={recipe.notes} className="w-full rounded border px-3 py-2"/></label><div className="flex gap-2"><Button type="submit" disabled={pending}>Guardar</Button><Button href="/meals/recipes" variant="secondary">Cancelar</Button></div></form></main>; }

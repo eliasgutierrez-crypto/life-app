@@ -1,0 +1,7 @@
+"use client";
+import { useActionState } from "react";
+import { updateDebt, type ActionState } from "../../actions";
+import { FormField } from "@/components/ui/form-field";
+import { Button } from "@/components/ui/button";
+import { ErrorMessage } from "@/components/ui/error-message";
+export default function EditDebtForm({ debt }: { debt: { id: string; name: string; principal: string; annualRate: string; startDate: string; termMonths: number } }) { const [state, action, pending] = useActionState(updateDebt.bind(null, debt.id), null as ActionState); return <main className="mx-auto max-w-2xl p-6"><h1 className="mb-4 text-2xl font-semibold">Editar deuda</h1><ErrorMessage message={state?.error}/><form action={action} className="space-y-4 rounded border bg-white p-4"><FormField label="Nombre" name="name" defaultValue={debt.name} required/><FormField label="Monto principal" name="principal" type="number" step="0.01" defaultValue={debt.principal}/><FormField label="Tasa anual (%)" name="annualRate" type="number" step="0.01" defaultValue={debt.annualRate}/><FormField label="Fecha inicial" name="startDate" type="date" defaultValue={debt.startDate}/><FormField label="Plazo (meses)" name="termMonths" type="number" defaultValue={debt.termMonths}/><div className="flex gap-2"><Button type="submit" disabled={pending}>Guardar</Button><Button href="/debts" variant="secondary">Cancelar</Button></div></form></main>; }

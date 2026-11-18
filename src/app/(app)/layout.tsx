@@ -2,30 +2,48 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { requireSessionPage } from "@/lib/auth";
 
-async function Nav() {
+const links = [
+  { href: "/", label: "Inicio" },
+  { href: "/pantry", label: "Despensa" },
+  { href: "/finance", label: "Finanzas" },
+  { href: "/habits", label: "Hábitos" },
+  { href: "/schedule", label: "Agenda" },
+  { href: "/debts", label: "Deudas" },
+  { href: "/investments", label: "Inversiones" },
+  { href: "/meals", label: "Comidas" },
+  { href: "/settings", label: "Ajustes" },
+];
+
+async function Sidebar() {
   await requireSessionPage();
 
   return (
-    <nav className="border-b bg-white px-4 py-3">
-      <div className="mx-auto flex max-w-4xl items-center gap-4">
-        <Link href="/" className="font-semibold text-gray-900">
-          Life App
-        </Link>
-        <Link href="/pantry" className="text-sm text-gray-700 hover:text-gray-900">
-          Despensa
-        </Link>
-      </div>
-    </nav>
+    <aside className="w-56 shrink-0 border-r bg-white p-4">
+      <Link href="/" className="mb-6 block text-lg font-semibold text-gray-900">
+        Life App
+      </Link>
+      <nav className="space-y-1">
+        {links.map((l) => (
+          <Link
+            key={l.href}
+            href={l.href}
+            className="block rounded px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+          >
+            {l.label}
+          </Link>
+        ))}
+      </nav>
+    </aside>
   );
 }
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Suspense fallback={<div className="h-12 border-b bg-white" />}>
-        <Nav />
+    <div className="flex min-h-screen bg-gray-50">
+      <Suspense fallback={<div className="w-56 border-r bg-white" />}>
+        <Sidebar />
       </Suspense>
-      {children}
+      <main className="flex-1">{children}</main>
     </div>
   );
 }
