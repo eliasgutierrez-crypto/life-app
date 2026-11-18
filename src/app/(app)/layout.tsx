@@ -18,8 +18,8 @@ async function Sidebar() {
   await requireSessionPage();
 
   return (
-    <aside className="w-56 shrink-0 border-r bg-white p-4">
-      <Link href="/" className="mb-6 block text-lg font-semibold text-gray-900">
+    <aside className="w-56 shrink-0 border-r border-gray-800 bg-gray-900 p-4">
+      <Link href="/" className="mb-6 block text-lg font-semibold text-gray-100">
         Life App
       </Link>
       <nav className="space-y-1">
@@ -27,7 +27,7 @@ async function Sidebar() {
           <Link
             key={l.href}
             href={l.href}
-            className="block rounded px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            className="block rounded px-3 py-2 text-sm text-gray-300 transition-colors hover:bg-gray-800 hover:text-gray-100"
           >
             {l.label}
           </Link>
@@ -40,10 +40,10 @@ async function Sidebar() {
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <Suspense fallback={<div className="w-56 border-r bg-white" />}>
+      <Suspense fallback={<div className="w-56 border-r border-gray-800 bg-gray-900" />}>
         <Sidebar />
       </Suspense>
-      <main className="flex-1">{children}</main>
+      <main className="min-w-0 flex-1 bg-gray-950">{children}</main>
     </div>
   );
 }

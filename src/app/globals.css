@@ -1,8 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
+  --background: #030712;
+  --foreground: #f3f4f6;
 }
 
 @theme inline {
@@ -12,15 +13,154 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
+  min-height: 100vh;
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+input,
+select,
+textarea {
+  color-scheme: dark;
+}
+
+::selection {
+  background: #1d4ed8;
+  color: #eff6ff;
+}
+
+/* Preserve readable dark surfaces while older screens still use light-theme classes. */
+:root .bg-white {
+  background-color: #111827;
+}
+
+:root .bg-gray-50 {
+  background-color: #030712;
+}
+
+:root .bg-gray-100 {
+  background-color: #1f2937;
+}
+
+:root .bg-gray-200 {
+  background-color: #374151;
+}
+
+:root .bg-black {
+  background-color: #2563eb;
+}
+
+:root .text-gray-900 {
+  color: #f9fafb;
+}
+
+:root .text-gray-800 {
+  color: #f3f4f6;
+}
+
+:root .text-gray-700 {
+  color: #e5e7eb;
+}
+
+:root .text-gray-600 {
+  color: #d1d5db;
+}
+
+:root .text-gray-500 {
+  color: #9ca3af;
+}
+
+:root .border,
+:root .border-gray-100,
+:root .border-gray-200,
+:root .border-gray-300,
+:root .border-zinc-200 {
+  border-color: #374151;
+}
+
+:root .text-zinc-600 {
+  color: #d4d4d8;
+}
+
+:root .text-zinc-500 {
+  color: #a1a1aa;
+}
+
+:root .bg-red-50,
+:root .bg-red-100 {
+  background-color: #450a0a;
+}
+
+:root .bg-green-50,
+:root .bg-green-100 {
+  background-color: #052e16;
+}
+
+:root .bg-yellow-50,
+:root .bg-yellow-100 {
+  background-color: #422006;
+}
+
+:root .bg-orange-50,
+:root .bg-orange-100 {
+  background-color: #431407;
+}
+
+:root .bg-blue-50,
+:root .bg-blue-100 {
+  background-color: #172554;
+}
+
+:root .hover\:bg-gray-50:hover {
+  background-color: #1f2937;
+}
+
+:root .hover\:bg-gray-100:hover {
+  background-color: #374151;
+}
+
+:root .hover\:border-black:hover {
+  border-color: #60a5fa;
+}
+
+:root .hover\:text-gray-900:hover {
+  color: #f9fafb;
+}
+
+:root .text-red-700,
+:root .text-red-800 {
+  color: #fca5a5;
+}
+
+:root .text-green-700,
+:root .text-green-800 {
+  color: #86efac;
+}
+
+:root .text-yellow-800 {
+  color: #fde68a;
+}
+
+:root .text-orange-800 {
+  color: #fdba74;
+}
+
+:root .text-blue-600,
+:root .text-blue-700,
+:root .text-blue-800 {
+  color: #93c5fd;
+}
+
+:root .border-red-300 {
+  border-color: #b91c1c;
+}
+
+:root .border-red-700 {
+  border-color: #b91c1c;
+}
+
+:root .divide-y > :not(:last-child) {
+  border-bottom-color: #374151;
 }

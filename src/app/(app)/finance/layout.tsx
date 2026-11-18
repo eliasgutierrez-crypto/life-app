@@ -8,9 +8,9 @@ const links = [
 export default function FinanceLayout({ children }: { children: React.ReactNode }) {
   return (
     <div>
-      <nav className="flex gap-2 overflow-x-auto border-b bg-white px-6 pt-4">
+      <nav className="flex gap-2 overflow-x-auto border-b border-gray-800 bg-gray-900 px-6 pt-4">
         {links.map(([path, label]) => (
-          <Link key={path} href={`/finance${path ? `/${path}` : ""}`} className="border-b-2 border-transparent px-3 pb-3 text-sm text-gray-600 hover:border-black hover:text-gray-900">{label}</Link>
+          <Link key={path} href={`/finance${path ? `/${path}` : ""}`} className="border-b-2 border-transparent px-3 pb-3 text-sm text-gray-400 transition-colors hover:border-blue-400 hover:text-gray-100">{label}</Link>
         ))}
       </nav>
       {children}

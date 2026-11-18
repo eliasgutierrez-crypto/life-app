@@ -4,10 +4,10 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 type Variant = "primary" | "secondary" | "danger" | "ghost";
 
 const styles: Record<Variant, string> = {
-  primary: "bg-black text-white hover:bg-gray-800",
-  secondary: "border bg-white text-gray-900 hover:bg-gray-50",
-  danger: "border border-red-300 text-red-700 hover:bg-red-50",
-  ghost: "text-gray-700 hover:bg-gray-100",
+  primary: "bg-blue-600 text-white hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-400",
+  secondary: "border border-gray-700 bg-gray-800 text-gray-100 hover:bg-gray-700",
+  danger: "border border-red-700 bg-red-950/40 text-red-200 hover:bg-red-900/60",
+  ghost: "text-gray-200 hover:bg-gray-800",
 };
 
 type CommonProps = {
