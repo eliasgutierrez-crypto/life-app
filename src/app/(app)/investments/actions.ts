@@ -10,7 +10,13 @@ export type ActionState = { error?: string } | null;
 
 export async function createInvestment(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const { coupleId } = await requireCouple();
-  const parsed = investmentSchema.safeParse({ name: formData.get("name"), type: formData.get("type") ?? "", currentValue: formData.get("currentValue") ?? "0" });
+  const parsed = investmentSchema.safeParse({
+    name: formData.get("name"),
+    type: formData.get("type") ?? "",
+    currentValue: formData.get("currentValue") ?? "0",
+    annualRate: formData.get("annualRate"),
+    interestType: formData.get("interestType") ?? "COMPOUND",
+  });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Datos inválidos" };
   await prisma.investment.create({ data: { coupleId, ...parsed.data } });
   revalidatePath("/investments");
@@ -18,7 +24,13 @@ export async function createInvestment(_prev: ActionState, formData: FormData): 
 }
 export async function updateInvestment(id: string, _prev: ActionState, formData: FormData): Promise<ActionState> {
   const { coupleId } = await requireCouple();
-  const parsed = investmentSchema.safeParse({ name: formData.get("name"), type: formData.get("type") ?? "", currentValue: formData.get("currentValue") ?? "0" });
+  const parsed = investmentSchema.safeParse({
+    name: formData.get("name"),
+    type: formData.get("type") ?? "",
+    currentValue: formData.get("currentValue") ?? "0",
+    annualRate: formData.get("annualRate"),
+    interestType: formData.get("interestType") ?? "COMPOUND",
+  });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Datos inválidos" };
   if (!await prisma.investment.findFirst({ where: { id, coupleId } })) return { error: "Inversión no encontrada" };
   await prisma.investment.update({ where: { id }, data: parsed.data });

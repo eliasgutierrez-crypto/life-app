@@ -1,104 +1,451 @@
 # Life App
 
-Life App es una aplicación web en desarrollo cuyo objetivo es reunir herramientas para organizar y dar seguimiento a distintos aspectos de la vida personal. La idea es que una persona o una pareja pueda administrar información relacionada con finanzas, hábitos, comidas, despensa, inversiones y agenda desde una sola aplicación.
+Life App es una aplicación web construida con Next.js para organizar los aspectos personales y compartidos de una pareja desde un único espacio. El proyecto ya incluye autenticación con Clerk, un modelo de datos compartido con Prisma/PostgreSQL y módulos funcionales para despensa, finanzas, hábitos, agenda, deudas, inversiones y comidas.
 
-## Estado del proyecto
+## Índice
 
-El proyecto tiene la estructura inicial de Next.js, autenticación de Clerk configurada, modelos de datos de Prisma para PostgreSQL y un panel de desarrollo para comprobar que las tablas responden.
+- [Estado actual](#estado-actual)
+- [Stack tecnológico](#stack-tecnológico)
+- [Arquitectura](#arquitectura)
+- [Estructura completa](#estructura-completa)
+- [Rutas de la aplicación](#rutas-de-la-aplicación)
+- [Modelos de datos](#modelos-de-datos)
+- [Autenticación y parejas](#autenticación-y-parejas)
+- [Patrones de implementación](#patrones-de-implementación)
+- [Componentes compartidos](#componentes-compartidos)
+- [Variables de entorno](#variables-de-entorno)
+- [Instalación y ejecución](#instalación-y-ejecución)
+- [Comandos disponibles](#comandos-disponibles)
+- [Flujo de desarrollo](#flujo-de-desarrollo)
+- [Estado de los módulos](#estado-de-los-módulos)
+- [Próximas mejoras](#próximas-mejoras)
+- [Verificación y calidad](#verificación-y-calidad)
 
-Actualmente:
+## Estado actual
 
-- Las páginas de registro e inicio de sesión de Clerk están disponibles.
-- Los modelos de Prisma y las migraciones iniciales están en el repositorio.
-- El panel `/dev/database` muestra el número de registros de cada modelo en modo desarrollo.
-- Prisma Studio permite consultar y modificar los registros directamente.
-- La página principal de la aplicación todavía es una pantalla inicial.
-- Aún no están implementados los módulos de producto para crear y consultar estos datos desde la interfaz normal.
-- No se incluyen datos de ejemplo ni una base de datos local; cada desarrollador debe configurar PostgreSQL.
-- Las migraciones incluidas deben aplicarse a la base elegida antes de que las tablas estén disponibles.
+El proyecto se encuentra en una fase funcional y madura para continuar su desarrollo.
 
-Por lo tanto, los modelos representan la estructura inicial de los datos, no funcionalidades completas de finanzas, hábitos u otras áreas.
+Implementado:
 
-## Tecnologías
+- Registro e inicio de sesión con Clerk.
+- Onboarding para crear o unirse a una pareja mediante código.
+- Asociación de registros a una pareja mediante `coupleId`.
+- Navegación lateral de todos los módulos principales.
+- Despensa con creación, edición y eliminación.
+- Finanzas con cuentas, categorías, movimientos, tarjetas y planes a meses.
+- Hábitos con frecuencia, seguimiento diario y historial.
+- Agenda semanal por días y bloques de tiempo.
+- Deudas con creación automática de pagos y amortización.
+- Inversiones con valor actual y aportaciones.
+- Recetas y planes semanales de comidas.
+- Ajustes con código de invitación y miembros de la pareja.
+- Compilación de producción con Next.js 16 y Cache Components.
 
-- **Next.js 16 y App Router:** estructura de páginas y ejecución del servidor.
-- **React 19 y TypeScript:** interfaz y tipos estáticos.
-- **Tailwind CSS 4:** estilos.
-- **Clerk:** registro, inicio de sesión e identificación de usuarios.
-- **Prisma ORM 6:** definición del esquema y acceso tipado a PostgreSQL.
-- **PostgreSQL:** motor de base de datos. Supabase es una opción planeada para alojarlo.
-- **Render:** plataforma de despliegue considerada; el proyecto aún no tiene una configuración de despliegue declarativa.
+Verificado al momento de esta documentación:
 
-## Qué contiene el esquema
+- `npm run lint`: pasa sin errores ni advertencias.
+- `npx tsc --noEmit`: pasa sin errores.
+- `npm run build`: compila y genera las rutas de la aplicación.
 
-Los modelos están divididos por área dentro de `prisma/models/`. El archivo `prisma/schema.prisma` contiene la configuración común del cliente y del proveedor PostgreSQL; Prisma carga también los archivos de la carpeta `prisma/`.
+## Stack tecnológico
 
-| Archivo | Modelos | Para qué sirven |
+| Tecnología | Versión declarada | Uso |
 | --- | --- | --- |
-| `couple.prisma` | `Couple` | Asocia dos identificadores de usuario de Clerk. El segundo miembro puede estar vacío mientras se completa la pareja. |
-| `finance.prisma` | `Account`, `Category`, `Transaction`, `CreditCard`, `InstallmentPlan`, `InstallmentPayment` | Representa cuentas, categorías, movimientos, tarjetas y compras a plazos con sus pagos. Incluye los enums `AccountType` y `TransactionType`. |
-| `debt.prisma` | `Debt`, `DebtPayment` | Registra una deuda y sus pagos programados. |
-| `habits.prisma` | `Habit`, `HabitEntry` | Define hábitos, su frecuencia y los registros de cumplimiento. |
-| `investment.prisma` | `Investment`, `InvestmentContribution` | Guarda inversiones y sus aportaciones. |
-| `meals.prisma` | `Recipe`, `MealPlan`, `MealPlanEntry` | Organiza recetas y comidas dentro de un plan semanal. |
-| `pantry.prisma` | `PantryItem` | Registra artículos, cantidades, unidades, existencias mínimas y vencimientos de la despensa. |
-| `schedule.prisma` | `ScheduleBlock` | Representa bloques de agenda repetidos en días y horarios específicos. |
+| Next.js | 16.4.6 | App Router, Server Components, Server Actions y compilación |
+| React | 19.3.0 | Componentes y estado de formularios |
+| TypeScript | 5 | Tipado estricto |
+| Tailwind CSS | 4.3.3 | Diseño mediante utilidades |
+| Clerk | 7.10.1 | Sesiones e identidad de usuarios |
+| Prisma | 6.19.3 | ORM, esquema, migraciones y cliente generado |
+| PostgreSQL | — | Base de datos relacional |
+| Zod | 4.6.7 | Validación de formularios y datos |
+| ESLint | 9 | Revisión estática |
 
-Las relaciones entre modelos están definidas en el esquema. Por ejemplo, los pagos pertenecen a una deuda o a un plan de pagos, y las entradas de un plan de comidas enlazan el plan con una receta.
+## Arquitectura
 
-El esquema utiliza tipos y características de PostgreSQL, como enums, arreglos y columnas `Decimal`. SQLite no es un reemplazo directo sin adaptar los modelos.
+### Renderizado
 
-### Reglas que ya expresa el esquema
+El proyecto utiliza el App Router de Next.js con:
 
-- `Couple.memberAId` y `Couple.memberBId` son únicos; `memberBId` es opcional para poder representar una pareja que todavía espera a su segundo miembro.
-- `userId` es un identificador de Clerk guardado como texto. Clerk es un servicio externo, así que esos valores no tienen una relación de clave foránea con una tabla `User` local.
-- Los importes de dinero usan `Decimal`, no `Float`, para conservar precisión decimal.
-- `TransactionType` incluye `EXPENSE`, `INCOME`, `TRANSFER`, `SAVING`, `INVESTMENT` y `DEBT_PAYMENT`. `AccountType` incluye `CHECKING`, `SAVINGS`, `INVESTMENT` y `CASH`.
-- `HabitFrequency` permite `DAILY`, `WEEKLY_X` y `SPECIFIC_DAYS`; `timesPerWeek` y `daysOfWeek` guardan los valores asociados a esas frecuencias.
-- `MealType` incluye `BREAKFAST`, `LUNCH` y `DINNER`. Un plan de comidas evita repetir el mismo tipo de comida en el mismo día de la semana.
-- `MealPlanEntry.dayOfWeek` usa `0` para lunes y `6` para domingo. `ScheduleBlock.daysOfWeek` usa `0` para domingo y `6` para sábado; son convenciones distintas documentadas por cada modelo.
-- Los pagos de deuda y de planes a plazos tienen números de pago únicos dentro de su entidad principal. Las entradas de hábitos también evitan duplicar el mismo hábito en una fecha.
+- Server Components para consultar datos.
+- Client Components para formularios con `useActionState`.
+- Server Actions para crear, actualizar, eliminar y cambiar estados.
+- Suspense alrededor de componentes que usan autenticación o base de datos.
+- Cache Components habilitado en `next.config.ts`.
+- `partialPrefetching` habilitado.
 
-## Estructura del proyecto
+No se usa `export const dynamic`. Las páginas protegidas o dependientes de sesiones utilizan un componente de página no async que pinta el shell y un componente async separado dentro de Suspense.
+
+### Aislamiento por pareja
+
+Las consultas y mutaciones principales utilizan `requireCouple()` y filtran por `coupleId`.
+
+El flujo general es:
+
+1. Clerk proporciona el `userId`.
+2. `requireCouple()` busca el registro `Couple` al que pertenece el usuario.
+3. Devuelve `userId` y `coupleId`.
+4. Las queries usan `coupleId` en `where`.
+5. Las actualizaciones y eliminaciones buscan primero el registro con `id` y `coupleId`.
+
+Esto evita que un miembro modifique registros de otra pareja.
+
+### Base de datos
+
+La aplicación importa `PrismaClient` desde `src/generated/prisma/client`. El cliente se crea una sola vez y se reutiliza fuera de producción para evitar instancias adicionales durante el desarrollo.
+
+Prisma carga el esquema desde `prisma/`, donde `schema.prisma` contiene la configuración común y `prisma/models/*.prisma` contiene los modelos separados por área.
+
+### Autorización
+
+El proxy protege todas las rutas excepto inicio de sesión, registro y cierre de sesión. Las páginas protegidas también llaman a `requireSessionPage()`, que:
+
+- Redirige a `/sign-in` sin sesión.
+- Redirige a `/onboarding/couple` si el usuario no pertenece a una pareja.
+- Devuelve el contexto del usuario y la pareja cuando ambos existen.
+
+## Estructura completa
 
 ```text
-prisma/
-  schema.prisma                   Configuración compartida del esquema Prisma
-  models/                         Modelos organizados por área
-  migrations/                     SQL versionado para crear y actualizar tablas
-prisma.config.ts                 Configuración del CLI de Prisma y conexión de migraciones
-src/
-  app/
-    dev/database/                 Panel local con conteos de modelos
-    sign-in/                      Página de inicio de sesión de Clerk
-    sign-up/                      Página de registro de Clerk
-    layout.tsx                    Layout raíz y ClerkProvider
-    page.tsx                      Página inicial
-  components/
-    database-model-counts.tsx     Conteos del panel de desarrollo
-  generated/prisma/               Cliente generado por Prisma; no editar a mano
-  lib/
-    auth.ts                       Helpers para obtener el usuario/pareja actual
-    couple.ts                     Helper para buscar o crear una pareja
-    db.ts                         Instancia compartida de PrismaClient
-  proxy.ts                        Middleware de Clerk
+life-app/
+├── .env                      # Variables PostgreSQL/Prisma
+├── .env.local                # Variables locales de Clerk y Next.js
+├── AGENTS.md                 # Reglas especiales para agentes del repositorio
+├── README.md                 # Documentación del proyecto
+├── eslint.config.mjs         # Configuración de ESLint
+├── next-env.d.ts             # Referencias generadas de Next.js
+├── next.config.ts            # Cache Components, Turbopack y prefetch parcial
+├── package.json              # Dependencias y scripts
+├── prisma.config.ts          # Configuración del CLI de Prisma
+├── tsconfig.json             # TypeScript estricto y alias @/*
+├── tsconfig.tsbuildinfo      # Caché incremental de TypeScript
+├── prisma/
+│   ├── schema.prisma         # Configuración y motor Prisma
+│   ├── migrations/
+│   │   ├── migration_lock.toml
+│   │   └── 20261117044158_init_couple_model/
+│   │       └── migration.sql
+│   └── models/
+│       ├── couple.prisma
+│       ├── debt.prisma
+│       ├── finance.prisma
+│       ├── habits.prisma
+│       ├── investment.prisma
+│       ├── meals.prisma
+│       ├── pantry.prisma
+│       └── schedule.prisma
+├── public/
+│   ├── file.svg
+│   ├── globe.svg
+│   ├── next.svg
+│   ├── vercel.svg
+│   └── window.svg
+└── src/
+    ├── proxy.ts
+    ├── app/
+    │   ├── globals.css
+    │   ├── layout.tsx
+    │   ├── error.tsx
+    │   ├── not-found.tsx
+    │   ├── favicon.ico
+    │   ├── sign-in/[[...sign-in]]/page.tsx
+    │   ├── sign-up/[[...sign-up]]/page.tsx
+    │   ├── sign-out/page.tsx
+    │   ├── onboarding/couple/page.tsx
+    │   ├── dev/database/page.tsx
+    │   └── (app)/
+    │       ├── layout.tsx
+    │       ├── loading.tsx
+    │       ├── page.tsx
+    │       ├── pantry/
+    │       ├── finance/
+    │       ├── habits/
+    │       ├── schedule/
+    │       ├── debts/
+    │       ├── investments/
+    │       ├── meals/
+    │       └── settings/
+    ├── components/
+    │   ├── database-model-counts.tsx
+    │   ├── forms/
+    │   │   └── form-field.tsx
+    │   └── ui/
+    │       ├── badge.tsx
+    │       ├── button.tsx
+    │       ├── card.tsx
+    │       ├── confirm-dialog.tsx
+    │       ├── currency-input.tsx
+    │       ├── date-picker.tsx
+    │       ├── empty-state.tsx
+    │       ├── error-message.tsx
+    │       ├── form-field.tsx
+    │       ├── input.tsx
+    │       ├── loading.tsx
+    │       ├── modal.tsx
+    │       ├── page-header.tsx
+    │       ├── select.tsx
+    │       ├── table.tsx
+    │       ├── tabs.tsx
+    │       └── toast.tsx
+    ├── generated/prisma/
+    │   ├── client.ts
+    │   ├── browser.ts
+    │   ├── commonInputTypes.ts
+    │   ├── enums.ts
+    │   ├── models.ts
+    │   ├── internal/
+    │   └── models/
+    └── lib/
+        ├── auth.ts
+        ├── constants.ts
+        ├── couple.ts
+        ├── db.ts
+        ├── decimal.ts
+        ├── debts-utils.ts
+        ├── finance-utils.ts
+        ├── format.ts
+        ├── habits-utils.ts
+        ├── investments-utils.ts
+        ├── meals-utils.ts
+        ├── pantry-utils.ts
+        ├── prisma-errors.ts
+        ├── schedule-utils.ts
+        └── validations/
+            ├── debts.ts
+            ├── finance.ts
+            ├── habits.ts
+            ├── investments.ts
+            ├── meals.ts
+            ├── pantry.ts
+            └── schedule.ts
 ```
 
-## Requisitos
+El directorio `src/generated/prisma/` es generado por Prisma. No debe editarse manualmente.
 
-- Node.js compatible con Next.js 16 y npm.
-- PostgreSQL local para desarrollo, o una base de pruebas a la que tengas permiso de conectarte.
-- Una instancia de Clerk y sus claves para probar registro e inicio de sesión.
+### Archivos principales de configuración
 
-No uses una base de producción para las pruebas descritas en esta guía. Prisma Studio permite editar y borrar datos.
+- `next.config.ts`: activa `cacheComponents`, `partialPrefetching` y el procesador Tailwind para Turbopack.
+- `tsconfig.json`: usa modo estricto, resolución `bundler`, JSX React 19 y el alias `@/*`.
+- `prisma.config.ts`: configura el esquema desde `prisma/`, las migraciones y la URL directa del CLI.
+- `eslint.config.mjs`: integra las reglas de Next.js y el proyecto.
+- `src/proxy.ts`: protege las rutas con Clerk.
+- `src/app/layout.tsx`: aplica `ClerkProvider`, idioma español y metadatos globales.
+- `src/app/(app)/layout.tsx`: pinta el sidebar y exige una sesión con pareja.
+
+## Rutas de la aplicación
+
+### Autenticación y onboarding
+
+| Ruta | Propósito |
+| --- | --- |
+| `/sign-in/*` | Inicio de sesión Clerk |
+| `/sign-up/*` | Registro Clerk |
+| `/sign-out` | Cierre de sesión |
+| `/onboarding/couple` | Crear pareja o unirse mediante código |
+
+### Aplicación principal
+
+| Ruta | Propósito |
+| --- | --- |
+| `/` | Inicio y resumen de despensa |
+| `/pantry` | Lista de artículos de la despensa |
+| `/pantry/new` | Crear artículo |
+| `/pantry/[id]/edit` | Editar artículo |
+| `/finance` | Resumen financiero |
+| `/finance/accounts` | Cuentas |
+| `/finance/accounts/new` | Crear cuenta |
+| `/finance/accounts/[id]/edit` | Editar cuenta |
+| `/finance/categories` | Categorías |
+| `/finance/categories/new` | Crear categoría |
+| `/finance/categories/[id]/edit` | Editar categoría |
+| `/finance/transactions` | Movimientos |
+| `/finance/transactions/new` | Crear movimiento |
+| `/finance/transactions/[id]/edit` | Editar movimiento |
+| `/finance/credit-cards` | Tarjetas de crédito |
+| `/finance/credit-cards/new` | Crear tarjeta |
+| `/finance/credit-cards/[id]` | Detalle de tarjeta |
+| `/finance/credit-cards/[id]/edit` | Editar tarjeta |
+| `/finance/installments` | Planes a meses |
+| `/finance/installments/new` | Crear plan |
+| `/finance/installments/[id]` | Pagos del plan |
+| `/habits` | Lista y estado diario de hábitos |
+| `/habits/new` | Crear hábito |
+| `/habits/[id]` | Detalle e historial |
+| `/habits/[id]/edit` | Editar hábito |
+| `/schedule` | Agenda semanal |
+| `/schedule/new` | Crear bloque |
+| `/schedule/[id]/edit` | Editar bloque |
+| `/debts` | Lista y progreso de deudas |
+| `/debts/new` | Crear deuda |
+| `/debts/[id]` | Tabla de pagos |
+| `/debts/[id]/edit` | Editar deuda |
+| `/investments` | Lista de inversiones |
+| `/investments/new` | Crear inversión |
+| `/investments/[id]` | Valor, aportaciones e historial |
+| `/investments/[id]/edit` | Editar inversión |
+| `/meals` | Redirección a `/meals/recipes` |
+| `/meals/recipes` | Lista de recetas |
+| `/meals/recipes/new` | Crear receta |
+| `/meals/recipes/[id]/edit` | Editar receta |
+| `/meals/plans` | Lista de planes semanales |
+| `/meals/plans/new` | Crear plan |
+| `/meals/plans/[id]` | Cuadrícula semanal editable |
+| `/settings` | Código de invitación y miembros |
+
+### Herramientas locales
+
+| Ruta | Propósito |
+| --- | --- |
+| `/dev/database` | Conteos de registros por modelo; solo aparece en desarrollo |
+
+## Modelos de datos
+
+Todos los registros compartidos pertenecen a una pareja mediante `coupleId`.
+
+### `Couple`
+
+- Identificador interno `id`.
+- `memberAId` y `memberBId`, ambos IDs de usuario de Clerk.
+- `inviteCode` único de ocho caracteres.
+- Relaciones inversas con todos los modelos principales.
+
+### Despensa
+
+`PantryItem` guarda nombre, cantidad actual, unidad, cantidad mínima y fecha opcional de vencimiento.
+
+### Finanzas
+
+`Account` representa cuentas corrientes, ahorros, inversión y efectivo. `Category` clasifica movimientos. `Transaction` registra importes, fechas, descripciones y relaciones opcionales con categoría, cuenta y tarjeta.
+
+`CreditCard` guarda límite, adeudo actual, días de corte y pago, e interés opcional. `InstallmentPlan` representa compras a meses y contiene pagos únicos por número.
+
+Enums principales:
+
+- `AccountType`: `CHECKING`, `SAVINGS`, `INVESTMENT`, `CASH`.
+- `TransactionType`: `EXPENSE`, `INCOME`, `TRANSFER`, `SAVING`, `INVESTMENT`, `DEBT_PAYMENT`.
+
+### Hábitos
+
+`Habit` contiene nombre, descripción y una frecuencia entre `DAILY`, `WEEKLY_X` y `SPECIFIC_DAYS`. `HabitEntry` registra por fecha si el hábito fue completado y evita duplicados para una misma fecha.
+
+### Agenda
+
+`ScheduleBlock` guarda título, descripción, color, hora inicial, hora final y un arreglo de días. Las horas se representan como minutos desde medianoche, entre `0` y `1439`.
+
+Convención de días: `0` corresponde a domingo y `6` a sábado.
+
+### Deudas
+
+`Debt` guarda principal, tasa anual simple, fecha inicial y plazo. `DebtPayment` contiene número, vencimiento, monto, capital, interés y estado de pago.
+
+Al crear una deuda se genera una tabla de amortización con mensualidades. Una acción permite alternar el estado pagado o pendiente.
+
+### Inversiones
+
+`Investment` guarda nombre, tipo y valor actual. `InvestmentContribution` conserva el importe, fecha y nota de cada aporte.
+
+Las utilidades pueden calcular el total aportado y la diferencia entre valor actual y aportaciones.
+
+### Comidas
+
+`Recipe` contiene nombre, tipo de comida, ingredientes y notas. `MealPlan` representa una semana identificada por `weekStart`. `MealPlanEntry` relaciona una posición de la cuadrícula con una receta.
+
+`MealType` contiene `BREAKFAST`, `LUNCH` y `DINNER`.
+
+Convención de días de comida: `0` corresponde a lunes y `6` a domingo.
+
+## Autenticación y parejas
+
+### Creación de pareja
+
+`ensureCouple()` busca una pareja existente para el usuario. Si no existe, crea una pareja con el `userId` de Clerk como `memberAId` y genera un código aleatorio.
+
+### Unión a una pareja
+
+`joinCouple()`:
+
+- Rechaza a un usuario que ya pertenece a una pareja.
+- Normaliza y valida un código de ocho caracteres.
+- Busca el código exacto.
+- Rechaza parejas completas y que el miembro principal se una a sí mismo.
+- Guarda al segundo usuario en `memberBId`.
+
+### Sign-out
+
+La ruta `/sign-out` contiene un `SignOutButton` de Clerk que redirige a `/sign-in`.
+
+## Patrones de implementación
+
+### Páginas
+
+Las páginas que consultan autenticación o Prisma siguen este patrón:
+
+- Componente exportado que solo pinta el shell y Suspense.
+- Componente async separado que llama a `requireCouple()` o `requireSessionPage()`.
+- Fallback visible mientras se resuelve la carga.
+- `notFound()` cuando un recurso no existe o no pertenece a la pareja.
+- Pasaje de Decimal y fechas como strings hacia Client Components.
+
+### Formularios
+
+Los formularios cliente usan:
+
+- `useActionState`.
+- `FormField`, `Input`, `Select` y componentes UI compartidos.
+- El primer mensaje Zod cuando la validación falla.
+- `disabled={pending}` mientras se ejecuta una acción.
+
+Los componentes de edición usan `bind` con el ID del recurso antes de enviar el estado y `FormData`.
+
+### Server Actions
+
+Las acciones siguen estas reglas:
+
+- Comienzan con `"use server"`.
+- Consultan `requireCouple()` como primera operación.
+- Validan `FormData` con Zod o comprobaciones explícitas.
+- Devuelven `{ error }` ante datos inválidos.
+- Releen el recurso por `id` y `coupleId`.
+- Ejecutan `revalidatePath()` después de mutaciones.
+- Redirigen al listado después de crear o actualizar.
+
+### Números decimales
+
+Prisma entrega columnas Decimal como objetos Decimal. Antes de enviarlos a componentes cliente se convierten con `.toString()` o `Number()`.
+
+Las utilidades `formatCurrency()` y `formatMoney()` presentan valores con formato mexicano y moneda MXN.
+
+## Componentes compartidos
+
+### `src/components/ui`
+
+| Componente | Responsabilidad |
+| --- | --- |
+| `button.tsx` | Variantes primary, secondary, danger y ghost; soporte de botón o enlace |
+| `card.tsx` | Contenedor con título opcional y acción |
+| `badge.tsx` | Estados default, success, warning, danger e info |
+| `input.tsx` | Input base con clases Tailwind |
+| `select.tsx` | Select base |
+| `form-field.tsx` | Etiqueta y campo reutilizables |
+| `table.tsx` | Tabla responsiva con encabezados |
+| `empty-state.tsx` | Estado vacío con acción opcional |
+| `page-header.tsx` | Encabezado de página con acción |
+| `error-message.tsx` | Mensaje de error en rojo |
+| `loading.tsx` | Indicador giratorio |
+| `modal.tsx` | Modal cliente mínimo |
+| `confirm-dialog.tsx` | Confirmación mínima |
+| `date-picker.tsx` | Input de fecha |
+| `currency-input.tsx` | Input numérico monetario |
+| `toast.tsx` | Toast visual fijo |
+| `tabs.tsx` | Contenedor de pestañas mínimo |
+
+Los componentes UI son deliberadamente simples y no dependen de una biblioteca externa.
 
 ## Variables de entorno
 
-Los archivos `.env*` contienen configuración local y no deben subirse a Git. No compartas ni pegues claves privadas en el README, en el código o en reportes públicos.
+### Clerk
 
-### Clerk: `.env.local`
-
-Configura las claves que proporciona tu proyecto de Clerk:
+Archivo esperado: `.env.local`
 
 ```dotenv
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
@@ -109,157 +456,195 @@ NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL=/
 NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL=/
 ```
 
-`CLERK_SECRET_KEY` es una clave privada: no debe llevar el prefijo `NEXT_PUBLIC_` ni exponerse en el navegador.
+`CLERK_SECRET_KEY` es privada y nunca debe exponerse.
 
-### PostgreSQL y Prisma: `.env`
+### PostgreSQL
 
-Configura las URLs de tu base de datos:
+Archivo esperado: `.env`
 
 ```dotenv
 DATABASE_URL=
 DIRECT_URL=
 ```
 
-- `DATABASE_URL` es la conexión que utiliza la aplicación en tiempo de ejecución.
-- `DIRECT_URL` es la conexión que usa el CLI de Prisma para migraciones cuando está definida.
-- Si `DIRECT_URL` no está definida o está vacía, la configuración del CLI usa `DATABASE_URL`.
-- Para una base PostgreSQL local, puedes usar la misma URL en ambas variables.
+- `DATABASE_URL`: conexión usada por la aplicación.
+- `DIRECT_URL`: conexión usada por el CLI para migraciones.
+- Si `DIRECT_URL` está vacío, Prisma CLI usa `DATABASE_URL`.
+- En desarrollo, ambas pueden apuntar a la misma base local.
 
-Ejemplo de formato (reemplaza el usuario y la contraseña por los de tu PostgreSQL local):
+Ejemplo:
 
 ```dotenv
 DATABASE_URL="postgresql://postgres:TU_PASSWORD@localhost:5432/life_app_dev?schema=public"
 DIRECT_URL="postgresql://postgres:TU_PASSWORD@localhost:5432/life_app_dev?schema=public"
 ```
 
-Si una contraseña contiene caracteres reservados para URLs, codifícalos correctamente. Prisma CLI carga la configuración de `prisma.config.ts`; Next.js carga las variables de entorno de la aplicación. Mantén ambas URLs apuntando a la misma base local mientras haces estas pruebas.
+No incluyas contraseñas reales en Git ni capturas públicas.
 
-## Preparar y ejecutar el proyecto en local
+## Instalación y ejecución
 
-1. **Instala las dependencias** desde la raíz del repositorio:
+Requisitos:
+
+- Node.js compatible con Next.js 16.
+- npm.
+- PostgreSQL local o una base de pruebas.
+- Proyecto Clerk con claves válidas.
+
+Pasos:
+
+1. Instalar dependencias:
 
    ```bash
    npm ci
    ```
 
-2. **Inicia PostgreSQL** y crea una base vacía, por ejemplo `life_app_dev`. Este repositorio no incluye un servidor PostgreSQL ni un archivo Docker Compose.
+2. Crear una base PostgreSQL vacía.
 
-3. **Configura `.env` y `.env.local`** con tus URLs de la base local y las claves de Clerk. Antes de continuar, confirma que `DATABASE_URL` y `DIRECT_URL` no apuntan a producción.
+3. Configurar `.env` y `.env.local`.
 
-4. **Valida el esquema y genera el cliente:**
+4. Validar el esquema:
 
    ```bash
    npm run db:validate
+   ```
+
+5. Generar el cliente:
+
+   ```bash
    npm run db:generate
    ```
 
-5. **Aplica las migraciones a la base seleccionada:**
+6. Aplicar migraciones en la base seleccionada:
 
    ```bash
    npm run db:migrate
    ```
 
-   Este comando ejecuta `prisma migrate dev`: crea las tablas si la base está vacía y crea una nueva migración cuando detecta cambios locales en el esquema.
-
-6. **Inicia Next.js:**
+7. Iniciar el servidor:
 
    ```bash
    npm run dev
    ```
 
-7. Abre [http://localhost:3000](http://localhost:3000). Para comprobar la conexión y los conteos de tablas, visita [http://localhost:3000/dev/database](http://localhost:3000/dev/database).
+8. Abrir [http://localhost:3000](http://localhost:3000).
 
-8. **Abre Prisma Studio** en otra terminal para crear, editar y relacionar registros:
+9. Abrir Prisma Studio si se necesitan inspeccionar datos:
 
    ```bash
    npm run db:studio
    ```
 
-   Prisma Studio normalmente queda disponible en [http://localhost:5555](http://localhost:5555). El panel `/dev/database` muestra los conteos; Studio es la herramienta para explorar y modificar filas.
-
-Las tablas aparecerán vacías después de crear la base. El proyecto no incluye un proceso de seed ni inserta datos de ejemplo automáticamente.
+`/dev/database` permanece disponible en modo desarrollo para mostrar el conteo de registros de los modelos. En producción esta ruta devuelve 404.
 
 ## Comandos disponibles
 
-| Comando | Descripción |
+| Comando | Acción |
 | --- | --- |
-| `npm ci` | Instala exactamente las dependencias registradas en `package-lock.json`. |
-| `npm run dev` | Inicia Next.js en modo desarrollo. |
-| `npm run lint` | Ejecuta ESLint. |
-| `npm run build` | Genera la compilación de producción de Next.js. |
-| `npm run start` | Ejecuta localmente la compilación de producción. |
-| `npm run db:validate` | Comprueba que Prisma pueda interpretar y validar el esquema. |
-| `npm run db:generate` | Genera el cliente Prisma en `src/generated/prisma`. |
-| `npm run db:migrate` | Ejecuta `prisma migrate dev` sobre la base indicada por las variables de entorno. |
-| `npm run db:studio` | Abre la interfaz gráfica de Prisma Studio. |
-| `npx prisma migrate deploy` | Aplica migraciones ya creadas en un entorno de despliegue; no crea migraciones nuevas. |
+| `npm ci` | Instala dependencias desde `package-lock.json` |
+| `npm run dev` | Inicia Next.js con Turbopack |
+| `npm run lint` | Ejecuta ESLint |
+| `npm run build` | Construye la aplicación de producción |
+| `npm run start` | Ejecuta el build de producción |
+| `npm run db:validate` | Ejecuta `prisma validate` |
+| `npm run db:generate` | Ejecuta `prisma generate` |
+| `npm run db:migrate` | Ejecuta `prisma migrate dev` |
+| `npm run db:studio` | Abre Prisma Studio |
+| `npx prisma migrate deploy` | Aplica migraciones existentes en despliegues |
+| `npx tsc --noEmit` | Ejecuta TypeScript sin generar archivos |
 
-`db:migrate` y `migrate deploy` no son intercambiables: usa `migrate dev` en desarrollo para crear y aplicar migraciones; usa `migrate deploy` en despliegues para aplicar migraciones ya revisadas y versionadas.
+## Flujo de desarrollo
 
-## Panel local y autenticación
+### Cambiar un modelo Prisma
 
-La ruta `/dev/database` consulta el número de filas de cada modelo mediante Prisma. Es de solo lectura y solo está habilitada cuando Next.js se ejecuta en modo desarrollo. En producción, la ruta devuelve 404. La página principal muestra un enlace al panel únicamente en desarrollo.
-
-El layout configura `ClerkProvider`, y el middleware de `src/proxy.ts` conecta Clerk con las rutas de Next.js. Los helpers de `src/lib/auth.ts` permiten obtener el usuario autenticado y su pareja. La existencia de esos helpers no significa que todas las operaciones de base de datos ya estén limitadas al usuario actual: los módulos de producto y sus reglas de autorización aún deben implementarse.
-
-Usa una base local o de pruebas en el panel y en Prisma Studio. El modo desarrollo no convierte una conexión a producción en una base segura para experimentar.
-
-## Flujo para cambiar el esquema
-
-Cuando agregues o modifiques modelos:
-
-1. Actualiza el archivo de `prisma/models/` correspondiente.
-2. Asegúrate de declarar ambos lados de cada relación Prisma.
-3. Valida el esquema y regenera el cliente:
+1. Editar el archivo correspondiente dentro de `prisma/models/`.
+2. Definir o actualizar las relaciones Prisma completas.
+3. Ejecutar:
 
    ```bash
    npm run db:validate
    npm run db:generate
-   ```
-
-4. Con las variables apuntando a una base local, crea y aplica una migración:
-
-   ```bash
    npm run db:migrate -- --name descripcion_del_cambio
    ```
 
-5. Revisa el SQL y el resultado de la migración antes de incluirla en Git.
-6. Actualiza los tipos, componentes y documentación relacionados con el cambio.
+4. Revisar el SQL creado.
+5. Añadir o ajustar validaciones Zod.
+6. Actualizar Server Actions y páginas que consuman el modelo.
+7. Confirmar que no se pasan Decimals directamente a Client Components.
+8. Ejecutar lint, TypeScript y build.
 
-Las migraciones son la historia versionada de los cambios en la base de datos. No edites una migración que ya se aplicó en un entorno compartido; crea una migración nueva para corregir el esquema. No edites manualmente los archivos generados dentro de `src/generated/prisma`.
+No se deben editar manualmente los archivos de `src/generated/prisma/`. Una migración aplicada en entornos compartidos debe corregirse con una migración nueva, no modificando el historial anterior.
 
-## Pruebas y verificación
+### Añadir una ruta protegida
 
-Antes de integrar cambios, ejecuta las comprobaciones pertinentes:
+1. Crear la carpeta dentro de `src/app/(app)/`.
+2. Usar Suspense y un componente async separado si se usa Prisma o autenticación.
+3. Consultar siempre con `requireCouple()`.
+4. Añadir el enlace al sidebar si debe ser accesible globalmente.
+5. Crear rutas de creación y edición siguiendo el patrón de los módulos existentes.
+6. Validar y agregar la acción en un archivo `actions.ts`.
+
+## Estado de los módulos
+
+| Módulo | Estado | Capacidades principales |
+| --- | --- | --- |
+| Despensa | Implementado | Crear, listar, editar, eliminar, bajo stock y vencimiento |
+| Finanzas | Implementado | Cuentas, categorías, movimientos, tarjetas y planes a meses |
+| Hábitos | Implementado | Crear, editar, eliminar, alternar completado, detalle e historial |
+| Agenda | Implementado | Vista semanal y creación/edición/eliminación de bloques |
+| Deudas | Implementado | Crear tabla de amortización, listar progreso y alternar pagos |
+| Inversiones | Implementado | Crear inversión y gestionar aportaciones |
+| Comidas | Implementado | Recetas y plan semanal editable |
+| Ajustes | Implementado | Código de invitación y miembros |
+| Onboarding | Implementado | Crear pareja o unirse mediante código |
+| Autenticación | Implementado | Clerk sign-in, sign-up y sign-out |
+| Diagnóstico DB | Implementado | Conteos locales en `/dev/database` |
+
+### Limitaciones conocidas
+
+- El dashboard principal todavía contiene textos antiguos de “Aún no implementado” en las tarjetas de finanzas y hábitos.
+- Las relaciones de movimientos con categorías, cuentas y tarjetas usan campos basados en IDs en algunos formularios; todavía pueden mejorar con selects cargados desde Prisma.
+- El plan de comidas utiliza el mismo grid para leer y modificar, pero no tiene edición más avanzada ni drag-and-drop.
+- Las utilidades de hábitos permiten calcular rachas y tasas, pero el listado usa principalmente el estado diario.
+- Los saldos de cuentas y tarjetas no se recalculan automáticamente en todas las operaciones financieras.
+- No hay pruebas automatizadas unitarias o end-to-end todavía.
+- No hay proceso de seed ni datos iniciales.
+- No hay configuración declarativa de despliegue para Render o Supabase.
+- La UI no incluye todavía un sistema completo de notificaciones Toast.
+
+Estas limitaciones representan trabajo pendiente real y no errores detectados por el build actual.
+
+## Próximas mejoras
+
+Prioridades recomendadas:
+
+1. Actualizar el dashboard principal con resúmenes reales de finanzas y hábitos.
+2. Añadir selects completos para categoría, cuenta y tarjeta en movimientos.
+3. Recalcular saldos de cuentas y tarjetas con las transacciones.
+4. Completar la relación visual de pagos de deudas e inversiones.
+5. Añadir pruebas unitarias para utilidades y validaciones.
+6. Añadir pruebas end-to-end para autenticación, pareja y módulos principales.
+7. Crear un seed seguro opcional para datos de desarrollo.
+8. Mejorar responsive en agenda y cuadrícula semanal de comidas.
+9. Integrar mensajes de éxito y error consistentes.
+10. Documentar y automatizar el despliegue.
+11. Añadir CI para lint, TypeScript, build y migraciones.
+12. Revisar controles de autorización en todas las Server Actions.
+
+## Verificación y calidad
+
+Ejecutar antes de entregar cambios:
 
 ```bash
-npm run db:validate
-npm run db:generate
 npm run lint
 npx tsc --noEmit
 npm run build
+npm run db:validate
+npm run db:generate
 ```
 
-La validación del esquema y la compilación no prueban que PostgreSQL esté disponible ni que las credenciales funcionen. Para verificar la conexión y las tablas, inicia la base local, aplica las migraciones y abre `/dev/database` o Prisma Studio.
+El build actual confirma que TypeScript y todas las rutas pueden compilarse. No reemplaza:
 
-## Despliegue
-
-El proyecto todavía no incluye un `render.yaml` ni una configuración de despliegue lista para producción. Render y Supabase son opciones consideradas, pero sus servicios y conexiones deben configurarse y verificarse por separado.
-
-Como referencia, una compilación de un servicio Node podría necesitar:
-
-- **Build command:** `npm ci && npm run db:generate && npm run build`
-- **Start command:** `npm run start`
-- Variables de Clerk y de PostgreSQL configuradas en el panel del proveedor, no copiadas desde archivos locales.
-- Un paso de despliegue controlado que ejecute `npx prisma migrate deploy` después de revisar las migraciones.
-
-La conexión, las direcciones de red, las credenciales y la ejecución de migraciones deben probarse en el entorno de despliegue. Una compilación local exitosa no confirma que la aplicación pueda conectarse a Supabase o Render.
-
-## Documentación de las tecnologías
-
-- [Next.js](https://nextjs.org/docs)
-- [Clerk para Next.js](https://clerk.com/docs/quickstarts/nextjs)
-- [Prisma ORM](https://www.prisma.io/docs)
-- [Prisma con Supabase](https://supabase.com/docs/guides/database/prisma)
-- [Conexiones PostgreSQL de Supabase](https://supabase.com/docs/guides/database/connecting-to-postgres)
-- [Despliegue de aplicaciones Node en Render](https://render.com/docs/deploy-node-express-app)
+- Una prueba real contra PostgreSQL.
+- Una prueba real de autenticación Clerk.
+- Pruebas de permisos entre parejas.
+- Pruebas de mutaciones y relaciones.

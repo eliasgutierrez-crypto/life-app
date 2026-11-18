@@ -1,3 +1,8 @@
+enum InterestType {
+  SIMPLE
+  COMPOUND
+}
+
 model Investment {
   id            String                   @id @default(cuid())
   coupleId      String
@@ -5,6 +10,8 @@ model Investment {
   name          String
   type          String?
   currentValue  Decimal                  @default(0) @db.Decimal(14, 2)
+  annualRate    Decimal?                 @db.Decimal(5, 2)
+  interestType  InterestType             @default(COMPOUND)
   contributions InvestmentContribution[]
 
   @@index([coupleId])
